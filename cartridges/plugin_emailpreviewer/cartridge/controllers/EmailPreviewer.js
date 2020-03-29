@@ -7,6 +7,7 @@ var Transaction = require('dw/system/Transaction');
 var URLUtils = require('dw/web/URLUtils');
 
 var server = require('server');
+var assign = require('server/assign');
 var OrderModel = require('*/cartridge/models/order');
 var instanceMiddleware = require('*/cartridge/scripts/middleware/instance');
 
@@ -53,6 +54,22 @@ server.get('Show',
                 var currentLocale = Locale.getLocale(req.locale.id);
                 order = new OrderModel(order, { countryCode: currentLocale.country, containerView: 'order' });
             }
+        }
+
+        var renderObj = {
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            passwordResetToken: passwordResetToken,
+            order: order,
+            url: url
+        };
+
+        var hooksHelper = require('*/cartridge/scripts/helpers/hooks');
+        var extendedObject = hooksHelper('app.emailpreviewer', 'extendRenderObject', [renderObj]);
+
+        if (!empty(extendedObject)) {
+            assign(renderObj, extendedObject);
         }
 
         res.render(template, {
